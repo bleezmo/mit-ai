@@ -75,8 +75,7 @@ def dfs(graph, start, goal):
 					new_path.append(ext_node)
 					new_paths.append(new_path)
 					prev_visited.append(ext_node)
-			new_paths.extend(agenda)
-			agenda = new_paths
+			agenda = new_paths + agenda
 	return "Could not find node "+goal+"!"
 
 
@@ -84,27 +83,34 @@ def dfs(graph, start, goal):
 ## Remember that hill-climbing is a modified version of depth-first search.
 ## Search direction should be towards lower heuristic values to the goal.
 def hill_climbing(graph, start, goal):
-	prev_visited = [start]
 	agenda = [[start]]
 	while len(agenda) > 0:
+		print("current agenda: "+str(agenda))
 		path = agenda.pop(0)
 		if(path[-1] == goal):
 			return path
 		else:
 			new_paths = []
 			for ext_node in graph.get_connected_nodes(path[-1]):
-				if(ext_node not in prev_visited):
-					new_path = list(path)
-					new_path.append(ext_node)
+				if(ext_node not in path):
+					new_path = path + list(ext_node)
 					new_paths.append(new_path)
-					prev_visited.append(ext_node)
+			new_paths = new_paths + agenda
+			agenda = []
 			while len(new_paths) > 0:
-				edge = None
+				largest = 0
+				path_index = 0
+				count = 0
 				for path in new_paths:
-					new_edge = graph.get_edge(path[-2],path[-1])
-					edge = new_edge if new_edge.length > edge.length else edge
-				agenda.insert(0,edge)
-				new_paths.remove(edge)
+					length = graph.get_edge(path[-2],path[-1]).length
+					print("length of edge "+str(path)+" is "+str(length))
+					if largest == 0 or length > largest:
+						largest = length
+						path_index = count
+					count = count + 1
+				print("inserting into agenda: "+str(new_paths[path_index]))
+				agenda.insert(0,new_paths[path_index])
+				new_paths.pop(path_index)
 	return "Could not find node "+goal+"!"
 
 ## Now we're going to implement beam search, a variation on BFS
@@ -121,7 +127,12 @@ def beam_search(graph, start, goal, beam_width):
 ## This function takes in a graph and a list of node names, and returns
 ## the sum of edge lengths along the path -- the total distance in the path.
 def path_length(graph, node_names):
-    raise NotImplementedError
+	total = 0
+	count = 1
+	while count < len(node_names):
+		total = total + graph.get_edge(node_names[count-1],node_names[count]).length
+		count = count + 1
+	return total
 
 
 def branch_and_bound(graph, start, goal):
