@@ -85,7 +85,7 @@ def dfs(graph, start, goal):
 def hill_climbing(graph, start, goal):
 	agenda = [[start]]
 	while len(agenda) > 0:
-		print("current agenda: "+str(agenda))
+		# print("current agenda: "+str(agenda))
 		path = agenda.pop(0)
 		if(path[-1] == goal):
 			return path
@@ -93,24 +93,24 @@ def hill_climbing(graph, start, goal):
 			new_paths = []
 			for ext_node in graph.get_connected_nodes(path[-1]):
 				if(ext_node not in path):
-					new_path = path + list(ext_node)
+					new_path = list(path)
+					new_path.append(ext_node)
 					new_paths.append(new_path)
-			new_paths = new_paths + agenda
-			agenda = []
+			sorted_paths = []
 			while len(new_paths) > 0:
-				largest = 0
+				shortest = 0
 				path_index = 0
 				count = 0
 				for path in new_paths:
-					length = graph.get_edge(path[-2],path[-1]).length
-					print("length of edge "+str(path)+" is "+str(length))
-					if largest == 0 or length > largest:
-						largest = length
+					length = graph.get_heuristic(path[-1],goal)
+					if (shortest == 0 or length < shortest):
+						shortest = length
 						path_index = count
 					count = count + 1
-				print("inserting into agenda: "+str(new_paths[path_index]))
-				agenda.insert(0,new_paths[path_index])
+				# print("inserting into agenda: "+str(new_paths[path_index])+" of length "+str(shortest))
+				sorted_paths.append(new_paths[path_index])
 				new_paths.pop(path_index)
+			agenda = sorted_paths + agenda
 	return "Could not find node "+goal+"!"
 
 ## Now we're going to implement beam search, a variation on BFS
@@ -119,7 +119,31 @@ def hill_climbing(graph, start, goal):
 ## The k top candidates are to be determined using the 
 ## graph get_heuristic function, with lower values being better values.
 def beam_search(graph, start, goal, beam_width):
-    raise NotImplementedError
+	agenda = [[start]]
+	count = 1
+	while len(agenda) > 0:
+		print("agenda before trimming: "+str(agenda))
+		pop_list = []
+		for path in agenda:
+			if len(path) < count: pop_list.append(path)
+		[agenda.remove(path) for path in pop_list]
+		if(len(agenda) == 0): return list('')
+		agenda.sort(cmp=lambda path1,path2: \
+			graph.get_heuristic(path2[-1],goal)-graph.get_heuristic(path1[-1],goal))
+		agenda = agenda[0:beam_width]
+		print("agenda after trimming: "+str(agenda))
+		path = agenda.pop(0)
+		if(path[-1] == goal): return path
+		else:
+			new_paths = []
+			for ext_node in graph.get_connected_nodes(path[-1]):
+				if(ext_node not in path):
+					new_path = list(path)
+					new_path.append(ext_node)
+					new_paths.append(new_path)
+			[agenda.append(new_path) for new_path in new_paths]
+			count = count + 1
+	return "Could not find node "+goal+"!"
 
 ## Now we're going to try optimal search.  The previous searches haven't
 ## used edge distances in the calculation.
