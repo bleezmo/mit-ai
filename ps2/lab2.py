@@ -156,12 +156,49 @@ def path_length(graph, node_names):
 		count = count + 1
 	return total
 
-
 def branch_and_bound(graph, start, goal):
-    raise NotImplementedError
+	agenda = [{'elems':[start],'length':0}]
+	goal_paths = []
+	while len(agenda) > 0:
+		path = agenda.pop(0)
+		if path['elems'][-1] == goal:
+			goal_paths.append(path)
+		else:
+			new_paths = []
+			for ext_node in graph.get_connected_nodes(path['elems'][-1]):
+				if(ext_node not in path['elems']):
+					elems = list(path['elems'])
+					elems.append(ext_node)
+					new_paths.append({'elems': elems, 'length': path_length(graph,elems)})
+			agenda = new_paths + agenda
+	# print("goal paths: "+str(goal_paths))
+	return sorted(goal_paths,cmp=lambda path1,path2:\
+		path1['length']-path2['length'])[0]['elems']
 
 def a_star(graph, start, goal):
-    raise NotImplementedError
+	agenda = [{'elems':[start],'length':0+graph.get_heuristic(start,goal)}]
+	visited = set([start])
+	smallest = None
+	while len(agenda) > 0:
+		path = agenda.pop(0)
+		if path['elems'][-1] == goal:
+			if smallest == None or path['length'] < smallest['length']:
+				smallest = path
+		else:
+			for ext_node in graph.get_connected_nodes(path['elems'][-1]):
+				if(ext_node not in path['elems'] and ext_node not in visited):
+					visited.add(ext_node)
+					elems = list(path['elems'])
+					elems.append(ext_node)
+					length = path_length(graph,elems)+graph.get_heuristic(ext_node,goal)
+					if(smallest == None or length < smallest['length']):
+						i = 0
+						for p in agenda:
+							if(p['length'] > length):
+								break
+							i += 1
+						agenda.insert(i,{'elems': elems, 'length': length})
+	return smallest['elems']
 
 
 ## It's useful to determine if a graph has a consistent and admissible
