@@ -120,21 +120,19 @@ def hill_climbing(graph, start, goal):
 ## graph get_heuristic function, with lower values being better values.
 def beam_search(graph, start, goal, beam_width):
 	agenda = [[start]]
-	count = 1
+	count = 0
 	while len(agenda) > 0:
-		print("agenda before trimming: "+str(agenda))
 		pop_list = []
 		for path in agenda:
 			if len(path) < count: pop_list.append(path)
 		[agenda.remove(path) for path in pop_list]
-		if(len(agenda) == 0): return list('')
+		if(len(agenda) == 0): return agenda
 		agenda.sort(cmp=lambda path1,path2: \
-			graph.get_heuristic(path2[-1],goal)-graph.get_heuristic(path1[-1],goal))
+			graph.get_heuristic(path1[-1],goal)-graph.get_heuristic(path2[-1],goal))
 		agenda = agenda[0:beam_width]
-		print("agenda after trimming: "+str(agenda))
-		path = agenda.pop(0)
-		if(path[-1] == goal): return path
-		else:
+		for path in list(agenda):
+			if(path[-1] == goal): return path
+			agenda.remove(path)
 			new_paths = []
 			for ext_node in graph.get_connected_nodes(path[-1]):
 				if(ext_node not in path):
@@ -142,8 +140,8 @@ def beam_search(graph, start, goal, beam_width):
 					new_path.append(ext_node)
 					new_paths.append(new_path)
 			[agenda.append(new_path) for new_path in new_paths]
-			count = count + 1
-	return "Could not find node "+goal+"!"
+		count = count + 1
+	return agenda
 
 ## Now we're going to try optimal search.  The previous searches haven't
 ## used edge distances in the calculation.
