@@ -207,11 +207,26 @@ def a_star(graph, start, goal):
 ## consistent, but not admissible?
 
 def is_admissible(graph, goal):
-    raise NotImplementedError
+	admissible = True
+	for node in graph.nodes:
+		heuristic = graph.get_heuristic(node,goal)
+		shortest_length = path_length(graph,a_star(graph,node,goal))
+		if(heuristic > shortest_length): 
+			admissible = False
+			break
+	return admissible
 
 def is_consistent(graph, goal):
-    raise NotImplementedError
-
-HOW_MANY_HOURS_THIS_PSET_TOOK = ''
-WHAT_I_FOUND_INTERESTING = ''
-WHAT_I_FOUND_BORING = ''
+	consistent = True
+	for node1 in graph.nodes:
+		for node2 in graph.get_connected_nodes(node1):
+			heuristic1 = graph.get_heuristic(node1,goal)
+			heuristic2 = graph.get_heuristic(node2,goal)
+			cost = graph.get_edge(node1,node2).length
+			if(abs(heuristic2-heuristic1) > cost):
+				consistent = False
+				break
+	return consistent
+HOW_MANY_HOURS_THIS_PSET_TOOK = '12'
+WHAT_I_FOUND_INTERESTING = 'blergl'
+WHAT_I_FOUND_BORING = 'mergl'
