@@ -156,7 +156,7 @@ quick_to_win_player = lambda board: minimax(board, depth=4,
 
 ## You can try out your new evaluation function by uncommenting this line:
 # run_game(basic_player, quick_to_win_player)
-run_game(quick_to_win_player,human_player)
+# run_game(human_player,quick_to_win_player)
 
 def minimax_find_board_value(board, depth, eval_fn,
                              get_next_moves_fn=get_all_next_moves,
@@ -196,47 +196,52 @@ def alpha_beta_search(board, depth,
   best_val = None
   
   for move, new_board in get_next_moves_fn(board):
-    val = -1 * alphabeta_find_board_value(new_board, depth-1, eval_fn,
-                                          get_next_moves_fn,
-                                          is_terminal_fn,1000,-1000)
-      if best_val == None or val > best_val[0]:
-        best_val = (val, move, new_board)
+    val = find_min_board_value(new_board, depth-1, eval_fn,get_next_moves_fn,is_terminal_fn,-1000,1000)
+    if best_val == None or val > best_val[0]:
+      best_val = (val, move, new_board)
           
-  print "MINIMAX: Decided on column %d with rating %d" % (best_val[1], best_val[0])
+  print "MINIMAX w/ A-B: Decided on column %d with rating %d" % (best_val[1], best_val[0])
 
   return best_val[1]
 
-def beta_find_board_value(board,depth,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta):
+def find_max_board_value(board,depth,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta):
   if is_terminal_fn(depth, board):
     return eval_fn(board)
 
-  best_val = None
+  max_val = None
   
   for move, new_board in get_next_moves_fn(board):
-    val = -1 * alpha_find_board_value(new_board,depth-1,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta)
-    if best_val == None or val > best_val:
-      best_val = val
+    val = find_min_board_value(new_board, depth-1, eval_fn,get_next_moves_fn, is_terminal_fn,alpha,beta)
+    if max_val == None or val > max_val:
+      max_val = val
+    if max_val > alpha:
+      alpha = max_val
+    if alpha >= beta:
+      return alpha
 
-  return best_val
+  return max_val
 
-def alpha_find_board_value(board,depth,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta):
+def find_min_board_value(board,depth,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta):
   if is_terminal_fn(depth, board):
     return eval_fn(board)
 
-  best_val = None
+  min_val = None
   
   for move, new_board in get_next_moves_fn(board):
-    val = -1 * beta_find_board_value(new_board, depth-1, eval_fn,get_next_moves_fn, is_terminal_fn,alpha,beta)
-    if best_val == None or val > best_val:
-      best_val = val
-
-  return best_val
+    val = find_max_board_value(new_board,depth-1,eval_fn,get_next_moves_fn,is_terminal_fn,alpha,beta)
+    if min_val == None or val < min_val:
+      min_val = val
+    if min_val < beta:
+      beta = min_val
+    if alpha >= beta:
+      return beta
+  return min_val
 
 ## Now you should be able to search twice as deep in the same amount of time.
 ## (Of course, this alpha-beta-player won't work until you've defined
 ## alpha-beta-search.)
 alphabeta_player = lambda board: alpha_beta_search(board,
-                                                   depth=8,
+                                                   depth=4,
                                                    eval_fn=focused_evaluate)
 
 ## This player uses progressive deepening, so it can kick your ass while
@@ -245,7 +250,7 @@ ab_iterative_player = lambda board: \
     run_search_function(board,
                         search_fn=alpha_beta_search,
                         eval_fn=focused_evaluate, timeout=5)
-#run_game(human_player, alphabeta_player)
+run_game(human_player, alphabeta_player)
 
 ## Finally, come up with a better evaluation function than focused-evaluate.
 ## By providing a different function, you should be able to beat
